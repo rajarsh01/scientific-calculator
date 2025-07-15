@@ -1,4 +1,3 @@
-
 let expr = "", memory = 0, angleType = "DEG";
 const expression = document.getElementById("expression");
 const result = document.getElementById("result");
@@ -10,7 +9,6 @@ const themeLabel = document.getElementById('theme-label');
 const fontSizeSlider = document.getElementById('fontSize');
 const btnSizeSlider = document.getElementById('btnSize');
 let lastError = "";
-
 
 themeSwitch.onchange = function() {
   const mode = themeSwitch.checked ? "light" : "dark";
@@ -25,13 +23,11 @@ window.addEventListener('DOMContentLoaded', () => {
     themeSwitch.checked = savedTheme === "light";
     themeLabel.textContent = themeSwitch.checked ? "Dark Mode" : "Light Mode";
   }
-
   fontSizeSlider.value = localStorage.getItem('fontSize') || 24;
   btnSizeSlider.value = localStorage.getItem('btnSize') || 48;
   document.documentElement.style.setProperty('--font-size', fontSizeSlider.value + 'px');
   document.documentElement.style.setProperty('--btn-height', btnSizeSlider.value + 'px');
 });
-
 
 fontSizeSlider.oninput = function() {
   document.documentElement.style.setProperty('--font-size', this.value + "px");
@@ -41,7 +37,6 @@ btnSizeSlider.oninput = function() {
   document.documentElement.style.setProperty('--btn-height', this.value + "px");
   localStorage.setItem('btnSize', this.value);
 }
-
 
 deg.onclick = function() {
   angleType = "DEG";
@@ -54,11 +49,9 @@ rad.onclick = function() {
   deg.classList.remove("active"); deg.setAttribute("aria-pressed", "false");
 }
 
-
 function haptic() {
   if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(10);
 }
-
 
 function factorial(n) {
   if (n % 1 !== 0) throw "Factorial only defined for integers!";
@@ -75,9 +68,7 @@ function trig(fn, v) {
     default: return v;
   }
 }
-
 function safeEval(s) {
- 
   s = s.replace(/(\d+)!/g, (_, n) => `factorial(${n})`)
        .replace(/sin\(/g, "trig('sin',")
        .replace(/cos\(/g, "trig('cos',")
@@ -89,35 +80,33 @@ function safeEval(s) {
        .replace(/π/g, "Math.PI")
        .replace(/e/g, "Math.E")
        .replace(/\^/g, "**");
- 
   return Function("factorial,trig", `"use strict"; return (${s})`)(factorial, trig);
 }
 
-
-function show(values) {
+function show() {
   expression.value = expr || "0";
-  let res = "", error = "";
+  clearError();
+  if (!expr) {
+    result.value = "";
+    return;
+  }
+  let incomplete =
+    /[+\-*/^.]$/.test(expr) ||
+    /\($/.test(expr) ||
+    expr.split('(').length > expr.split(')').length;
+  if (incomplete) {
+    result.value = "";
+    return;
+  }
   try {
-    if (!expr) {
-      result.value = "";
-      clearError();
-      return;
-    }
- 
-    let openP = (expr.match(/\(/g) || []).length,
-        closeP = (expr.match(/\)/g) || []).length;
-    if (openP < closeP) throw "Too many right parentheses";
-    if (/[=]$/.test(expr)) expr = expr.replace(/=$/, "");
-    res = safeEval(expr);
+    let res = safeEval(expr);
     if (!Number.isFinite(res)) throw "Result not finite";
-    res = precSafe(res);
+    result.value = precSafe(res);
     clearError();
   } catch (e) {
-    error = typeof e === "string" ? e : "Syntax Error";
-    showError(error);
-    res = error;
+    result.value = "";
+    clearError();
   }
-  result.value = res;
 }
 
 function showError(msg) {
@@ -125,6 +114,7 @@ function showError(msg) {
   expression.classList.add('error');
   result.setAttribute('aria-live', 'assertive');
   result.setAttribute('aria-label', 'Result. Error: ' + msg);
+  result.value = msg;
   lastError = msg;
 }
 function clearError() {
@@ -135,16 +125,27 @@ function clearError() {
   lastError = "";
 }
 
-
 function handleInput(v) {
   if (result.value.includes("Error")) expr = "";
   if (v === "=") {
-    if (lastError) return; 
+    let openP = (expr.match(/\(/g) || []).length,
+        closeP = (expr.match(/\)/g) || []).length;
+    if (openP !== closeP) {
+      showError("Mismatched parentheses");
+      return;
+    }
+    if (
+      /[+\-*/^.]$/.test(expr) ||
+      /\($/.test(expr)
+    ) {
+      showError("Incomplete expression");
+      return;
+    }
     try {
       expr = safeEval(expr).toString();
       clearError();
-    } catch {
-      showError("Syntax Error");
+    } catch (e) {
+      showError(typeof e === "string" ? e : "Syntax Error");
     }
   } else if ("0123456789".includes(v) || v === ".") {
     expr += v;
@@ -177,12 +178,10 @@ function handleInput(v) {
   haptic();
 }
 
-
 keys.forEach(btn => {
   btn.onclick = () => handleInput(btn.dataset.action);
   btn.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") handleInput(btn.dataset.action); };
 });
-
 
 const keyTable = {
   Enter: "=", "=": "=",
@@ -191,7 +190,7 @@ const keyTable = {
   "+": "+", "-": "-", "*": "*", x: "*", X: "*", "/": "/", "^": "^", ".": ".",
   "%": "%", "(": "(", ")": ")",
   "s": "sin(", "S": "sin(",
-  "l": "ln(", "L": "ln(", // for ln
+  "l": "ln(", "L": "ln(",
   "g": "log(", "G": "log(",
   "r": "√(", "R": "√(",
   "t": "tan(", "T": "tan(",
@@ -202,19 +201,13 @@ const keyTable = {
 };
 
 document.addEventListener('keydown', function(e) {
-
   if ((e.key >= "0" && e.key <= "9") || e.key === ".") return handleInput(e.key);
   if (keyTable[e.key] !== undefined) return handleInput(keyTable[e.key]);
-
   if (e.key === "m") return handleInput("MR");
   if (e.key === "M") return handleInput("M+");
   if (e.key === "n") return handleInput("M-");
-
   if (["ArrowDown","ArrowUp","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
 });
 
-
 [deg, rad, themeSwitch, ...keys].forEach(el => {el.tabIndex = 0;});
-
-
 show();
