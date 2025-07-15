@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scientific Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="calculator-container">
+    <div class="toggle-row">
+      <button id="deg" class="toggle active">DEG</button>
+      <button id="rad" class="toggle">RAD</button>
+    </div>
+    <input type="text" id="expression" class="display" disabled>
+    <input type="text" id="result" class="display result" disabled>
+    <div class="keys">
+      <!-- Scientific keys row 1 -->
+      <button data-action="(">(</button>
+      <button data-action=")">)</button>
+      <button data-action="MC">MC</button>
+      <button data-action="MR">MR</button>
+      <button data-action="M+">M+</button>
+      <button data-action="M-">M-</button>
+
+      <!-- Scientific row 2 -->
+      <button data-action="sin">sin</button>
+      <button data-action="cos">cos</button>
+      <button data-action="tan">tan</button>
+      <button data-action="^">xʸ</button>
+      <button data-action="√">√</button>
+      <button data-action="!">n!</button>
+
+      <!-- Scientific row 3 -->
+      <button data-action="ln">ln</button>
+      <button data-action="log">log</button>
+      <button data-action="π">π</button>
+      <button data-action="e">e</button>
+      <button data-action="%">%</button>
+      <button data-action="rand">Rnd</button>
+
+      <!-- Number pad and main operators -->
+      <button data-action="7">7</button>
+      <button data-action="8">8</button>
+      <button data-action="9">9</button>
+      <button data-action="/">÷</button>
+      <button data-action="C">C</button>
+      <button data-action="Del">⌫</button>
+      
+      <button data-action="4">4</button>
+      <button data-action="5">5</button>
+      <button data-action="6">6</button>
+      <button data-action="*">×</button>
+      <button data-action="-">−</button>
+      <button data-action="+">+</button>
+      
+      <button data-action="1">1</button>
+      <button data-action="2">2</button>
+      <button data-action="3">3</button>
+      <button data-action=".">.</button>
+      <button data-action="0" style="grid-column: span 2;">0</button>
+      <button class="equal" data-action="=">=</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
